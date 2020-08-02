@@ -1,0 +1,50 @@
+- hosts: worker
+
+  tasks:
+   - copy:
+      src: "/root/kubecnf"
+      dest: "/root"
+     ignore_errors: yes
+
+   - copy:
+      src: "/root/task1/index.html"
+      dest: "/root"
+     ignore_errors: yes
+
+   - name: kubeconfig
+     shell: mv -u /root/kubecnf/.kube /root/
+     ignore_errors: yes
+  
+   - name: Kubectl
+     shell: curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+   - name: kubectl permission
+     shell: chmod +x ./kubectl
+   - name: kubectl bin
+     shell: mv -f ./kubectl /usr/local/bin/kubectl
+     ignore_errors: yes
+
+   - name: Install kubernetes Module for Python
+     pip:
+      name: kubernetes 
+
+   - name: Install Openshift Module for Python
+     pip:
+      name: Openshift
+  
+   - name: Create a k8s namespace
+     k8s:
+      name: deploy
+      api_version: v1
+      kind: Namespace
+      state: present
+
+   - name: Create a Deployment by reading the definition from a local file
+     k8s:
+      state: present
+      definition: "{{ lookup('file', '/root/task1/webos.yml') }}"
+
+   - name: buffer
+     shell: sleep 20
+
+   - name: kubectl cp
+     shell: kubectl cp /root/index.html deploy/"$(kubectl get pod -n deploy|grep webos|awk '{print $1}')":/usr/local/apache2/htdocs/

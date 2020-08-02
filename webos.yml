@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webos
+  namespace: deploy
+  labels:
+    app: webos
+spec:
+  ports:
+    - port: 80
+      nodePort: 30001
+  selector:
+    app: webos
+  type: NodePort
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: webos-pv-claim
+  namespace: deploy
+  labels:
+    app: webos
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webos
+  namespace: deploy
+  labels:
+    app: webos
+spec:
+  selector:
+    matchLabels:
+      app: webos
+  template:
+    metadata:
+      namespace: deploy
+      labels:
+        app: webos
+    spec:
+      containers:
+      - image: httpd:latest
+        name: webos
+        ports:
+        - containerPort: 80
+          name: webos
+        volumeMounts:
+        - name: webos-ps
+          mountPath: /usr/local/apache2/htdocs
+      volumes:
+      - name: webos-ps
+        persistentVolumeClaim:
+          claimName: webos-pv-claim
