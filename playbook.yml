@@ -7,7 +7,7 @@
      ignore_errors: yes
 
    - copy:
-      src: "/root/task1/index.html"
+      src: "./index.html"
       dest: "/root"
      ignore_errors: yes
 
@@ -41,7 +41,7 @@
    - name: Create a Deployment by reading the definition from a local file
      k8s:
       state: present
-      definition: "{{ lookup('file', '/root/task1/webos.yml') }}"
+      definition: "{{ lookup('file', './webos.yml') }}"
 
    - name: buffer
      shell: sleep 20
